@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - echo "Starting deployment to cPanel..."
+    - export REPO_PATH=/home/awesum/public_html/wp-content/plugins/wpdispatchforge
+    - mkdir -p $REPO_PATH
+    - rsync -av --exclude='.git' --exclude='.cpanel.yml' ./ $REPO_PATH/
+    - echo "Deployment completed successfully to $REPO_PATH"
