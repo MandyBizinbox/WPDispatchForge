@@ -1,8 +1,13 @@
 ---
 deployment:
   tasks:
-    - echo "Starting deployment to cPanel..."
-    - export REPO_PATH=/home/awesum/public_html/wp-content/plugins/wpdispatchforge
-    - mkdir -p $REPO_PATH
-    - rsync -av --exclude='.git' --exclude='.cpanel.yml' ./ $REPO_PATH/
-    - echo "Deployment completed successfully to $REPO_PATH"
+    - export DEPLOY_PATH=/home/awesum/public_html/wp-content/plugins/wpdispatchforge
+    - echo "Starting deployment for WPDispatchForge..."
+    - echo "Pulling latest changes from the repository"
+    - /usr/local/cpanel/bin/git_version --update
+    - /usr/local/cpanel/bin/git_pull
+    - echo "Synchronizing files to the deployment directory"
+    - rsync -avz --exclude='.git/' --exclude='.env' --exclude='.cpanel.yml' ./ $DEPLOY_PATH/
+    - echo "Clearing PHP cache"
+    - find $DEPLOY_PATH -type f -name '*.php' -exec touch {} +
+    - echo "Deployment complete"
