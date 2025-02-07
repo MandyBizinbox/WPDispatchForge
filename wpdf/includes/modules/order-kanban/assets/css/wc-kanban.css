@@ -1,0 +1,153 @@
+/* Kanban Board Container */
+#kanban-board {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent columns from wrapping */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    margin: 20px 0;
+    padding-bottom: 10px; /* Add padding to prevent scrollbar overlap */
+    width: 100%; /* Ensure full width for the scroll container */
+}
+
+/* Kanban Columns */
+.kanban-column {
+    flex: 0 0 300px; /* Fixed width for columns */
+    background-color: #f1f1f1;
+    padding: 10px; /* Add padding for content within column */
+    border: 1px solid #888; /* Dark grey border around columns */
+    border-radius: 5px;
+    min-height: 400px;
+    margin-right: 10px; /* Space between columns */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    overflow-y: auto; /* Allow scrolling within columns if content overflows */
+    max-height: 80vh; /* Limit the max height for usability */
+    position: relative; /* Relative positioning for static header */
+}
+
+/* Kanban Card Container */
+.kanban-card-container {
+    position: relative; /* Ensure relative positioning for cards */
+}
+
+/* Kanban Header - Static */
+.kanban-column h2 {
+    background-color: #d3d3d3; /* Slightly different color for headers */
+    padding: 10px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Ensure headers are above other content */
+    border-bottom: 1px solid #888; /* Add border to separate header from content */
+}
+
+/* Kanban Cards */
+.kanban-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px; /* Space around each card to prevent stacking */
+    cursor: pointer;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
+    transition: transform 0.2s ease; /* Smooth transition for hover effect */
+    position: relative; /* Ensure cards are positioned relative to container */
+    z-index: auto; /* Reset z-index to normal */
+}
+
+.kanban-card:hover {
+    transform: scale(1.02); /* Slightly enlarge on hover */
+}
+
+/* Modal for Order Details */
+/* Modal for Order Details */
+#order-details-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex; /* Use flex to center the modal */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure modal is on top of other content */
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 60%; /* Adjust width for larger content */
+    max-width: 800px; /* Limit the maximum width */
+    max-height: 80vh; /* Limit the height of the modal */
+    overflow-y: auto; /* Allow scrolling if content exceeds modal height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a shadow for depth */
+    position: relative;
+    display: flex;
+    flex-direction: column; /* Ensure vertical stacking */
+}
+
+.modal-order-header h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center; /* Center-align the order number */
+}
+
+.modal-order-details {
+    display: flex;
+    justify-content: space-between; /* Distribute columns evenly */
+    margin-bottom: 20px;
+}
+
+.modal-column {
+    width: 45%; /* Use 45% width for each column */
+}
+
+.order-status {
+    color: green;
+    font-weight: bold;
+}
+
+.modal-order-items {
+    margin-top: 20px;
+}
+
+.modal-order-items h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.modal-order-items ul {
+    list-style: none;
+    padding: 0;
+}
+
+.modal-order-items ul li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.close-modal {
+    background: red;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 3px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+/* Responsive Design Adjustments */
+@media (max-width: 768px) {
+    .kanban-column {
+        flex: 0 0 80%; /* Adjust column width for smaller screens */
+    }
+
+    .modal-content {
+        width: 90%; /* Adjust modal width for smaller screens */
+    }
+}

@@ -1,0 +1,43 @@
+/* Styling for the tabs navigation */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+.nav-tab {
+    padding: 10px 20px;
+    margin-right: 5px;
+    text-decoration: none;
+    color: #007cba;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    background: #f1f1f1;
+    cursor: pointer;
+}
+
+.nav-tab:hover {
+    background: #e5e5e5;
+}
+
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    font-weight: bold;
+}
+
+/* Wrapper for tab contents */
+.tab-content-wrapper {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    margin-top: -1px; /* Align content with tabs */
+}
+
+/* Default hide all tab content */
+.tab-content {
+    display: none;
+}
+
+/* Show active tab content */
+.tab-content.active {
+    display: block;
+}

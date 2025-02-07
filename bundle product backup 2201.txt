@@ -1,0 +1,431 @@
+<?php
+
+namespace DispatchForge\Modules;
+
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly.
+}
+
+class WC_Product_Bundle extends \WC_Product_Simple
+{
+    public function get_type()
+    {
+        return 'bundle';
+    }
+}
+
+class BundleProduct
+{
+    public function __construct()
+    {
+        add_filter('product_type_selector', [$this, 'add_bundle_product_type']);
+        add_filter('woocommerce_product_data_tabs', [$this, 'modify_product_data_tabs']);
+        add_action('woocommerce_product_data_panels', [$this, 'add_bundle_product_tab_content']);
+        add_action('woocommerce_process_product_meta', [$this, 'save_bundle_product_fields']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_bundle_product_scripts']);
+        add_action('woocommerce_order_status_processing', [$this, 'reduce_bundle_stock']);
+        add_filter('woocommerce_product_class', [$this, 'get_bundle_product_class'], 10, 2);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_bundle_product_scripts']);
+        add_action('wp_ajax_custom_bundle_product_search', [$this, 'custom_bundle_product_search_handler']);
+        add_action('wp_ajax_nopriv_custom_bundle_product_search', [$this, 'custom_bundle_product_search_handler']);
+         add_filter('woocommerce_product_get_stock_quantity', [$this, 'set_bundle_stock'], 10, 2);
+add_filter('woocommerce_short_description', [$this, 'append_bundle_to_short_description'], 10, 2);
+        add_action('woocommerce_after_shop_loop_item', [$this, 'display_bundle_add_to_cart_button']);
+add_action('woocommerce_product_options_inventory_product_data', [$this, 'set_manage_stock']);
+$this->enable_bundle_add_to_cart();
+add_filter('woocommerce_locate_template', [$this, 'override_bundle_template'], 10, 3);
+add_filter('woocommerce_product_has_attributes', [$this, 'enable_bundle_attributes'], 10, 2);
+add_filter('template_include', [$this, 'load_bundle_product_template']);
+add_action('woocommerce_single_product_summary', [$this, 'display_bundle_components'], 25);
+
+
+
+                
+    }
+
+    /**
+     * Ensure WooCommerce loads the correct product class.
+     */
+    public function get_bundle_product_class($classname, $product_type)
+    {
+        if ($product_type === 'bundle') {
+            return WC_Product_Bundle::class;
+        }
+        return $classname;
+    }
+
+
+  public function enqueue_bundle_product_scripts()
+    {
+        wp_enqueue_script('selectWoo');  // WooCommerce Select2 (SelectWoo)
+        wp_enqueue_script('woocommerce_admin'); // WooCommerce admin functionalities
+
+        wp_enqueue_script('bundle-product-scripts', plugin_dir_url(__FILE__) . 'assets/js/bundle-product-scripts.js', ['jquery', 'selectWoo', 'woocommerce_admin'], '1.0.0', true);
+        
+        // Add inline script to pass data
+        $script_data = [
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('search-products')
+        ];
+        wp_add_inline_script('bundle-product-scripts', 'var bundleProductData = ' . json_encode($script_data) . ';', 'before');
+    }
+
+
+    /**
+     * Add "Bundle" to product type selector.
+     */
+    public function add_bundle_product_type($types)
+    {
+        $types['bundle'] = __('Bundle', 'dispatchforge');
+        return $types;
+    }
+
+    /**
+     * Modify WooCommerce product data tabs.
+     */
+    public function modify_product_data_tabs($tabs)
+    {
+        if ('product' === get_post_type()) {
+            ?>
+                <script type='text/javascript'>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        let optionGroupPricing = document.querySelector('.options_group.pricing');
+                        !!optionGroupPricing && optionGroupPricing.classList.add('show_if_bundle');
+
+                        let stockManagement = document.querySelector('._manage_stock_field');
+                        !!stockManagement && stockManagement.classList.add('show_if_bundle');
+
+                        let soldIndividuallyDiv = document.querySelector('.inventory_sold_individually');
+                        let soldIndividually = document.querySelector('._sold_individually_field');
+                        !!soldIndividuallyDiv && soldIndividuallyDiv.classList.add('show_if_bundle');
+                        !!soldIndividually && soldIndividually.classList.add('show_if_bundle');
+
+                        let generalProductData = document.querySelectorAll('#general_product_data > .options_group');
+                        let taxDiv = !!generalProductData && Array.from(generalProductData).at(-1);
+                        !!taxDiv && taxDiv.classList.add('show_if_bundle');
+                    });
+                </script>
+            <?php
+        }
+
+        $tabs['general']['class'][] = 'show_if_bundle';
+        $tabs['inventory']['class'][] = 'show_if_bundle';
+
+        $tabs['bundle'] = [
+            'label'    => __('Bundle Components', 'dispatchforge'),
+            'target'   => 'bundle_product_data',
+            'class'    => ['show_if_bundle'],
+            'priority' => 21,
+        ];
+
+        return $tabs;
+    }
+
+
+public function set_manage_stock()
+{
+    global $post;
+    $product = wc_get_product($post->ID);
+    
+    if ($product && $product->get_type() === 'bundle') {
+        echo '<script>
+            jQuery(document).ready(function($) {
+                $("._manage_stock_field input").prop("checked", true).trigger("change");
+            });
+        </script>';
+    }
+}
+
+
+public function custom_bundle_product_search_handler()
+{
+    check_ajax_referer('search-products', 'security');
+
+    if (!isset($_POST['term']) || empty($_POST['term'])) {
+        wp_send_json_error(['message' => 'Search term missing']);
+    }
+
+    $term = sanitize_text_field($_POST['term']);
+
+    $args = [
+        'post_type'      => 'product',
+        'posts_per_page' => 10,
+        's'              => $term,
+    ];
+
+    $query = new \WP_Query($args);
+    $results = [];
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            $product_id = get_the_ID();
+            $product = wc_get_product($product_id);
+
+            $results[] = [
+                'id'    => $product_id,
+                'text'  => get_the_title(),
+                'stock' => $product->get_stock_quantity() !== null ? $product->get_stock_quantity() : 'N/A',
+                'price' => wc_price($product->get_regular_price()),
+            ];
+        }
+    }
+
+    wp_reset_postdata();
+    wp_send_json($results);
+}
+
+
+
+    /**
+     * Add custom fields to the Bundle product tab.
+     */
+public function add_bundle_product_tab_content()
+{
+    global $post;
+    $bundle_components = get_post_meta($post->ID, '_bundle_components', true);
+
+    if (is_string($bundle_components)) {
+        $bundle_components = json_decode($bundle_components, true);
+    }
+
+    $bundle_components = is_array($bundle_components) ? $bundle_components : [];
+
+    echo '<div id="bundle_product_data" class="panel woocommerce_options_panel">';
+    echo '<div class="options_group">';
+
+    echo '<label for="bundle_component_search">' . __('Add Product:', 'dispatchforge') . '</label>';
+    echo '<input type="text" id="bundle_component_search" name="bundle_component_search" placeholder="Search for products..." autocomplete="off">';
+    echo '<div id="bundle_search_results"></div>';
+    echo '<input type="hidden" id="bundle_components_input" name="bundle_components" value="' . esc_attr(json_encode($bundle_components)) . '">';
+
+    echo '<table id="bundle_components_table" class="wp-list-table widefat fixed striped">';
+    echo '<thead><tr><th>SKU</th><th>Name</th><th>Stock</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead>';
+    echo '<tbody id="bundle_components_body">';
+
+    if (!empty($bundle_components)) {
+        foreach ($bundle_components as $component_id => $component) {
+            $product = wc_get_product($component_id);
+            if ($product) {
+                $sku = $product->get_sku();
+                $name = $product->get_name();
+                $stock = $product->get_stock_quantity() ?? 'N/A';
+                $price = wc_get_price_to_display($product); // Get raw numeric price
+
+                echo '<tr>';
+                echo '<td>' . esc_html($sku ?: $component_id) . '</td>';
+                echo '<td>' . esc_html($name) . '</td>';
+                echo '<td>' . esc_html($stock) . '</td>';
+                echo '<td>' . esc_html(number_format($price, 2)) . '</td>';
+                echo '<td><input type="number" name="bundle_components[' . esc_attr($component_id) . '][qty]" value="' . esc_attr($component['qty']) . '" min="1"></td>';
+                echo '<td><button type="button" class="remove-item button">' . __('Remove', 'dispatchforge') . '</button></td>';
+                echo '</tr>';
+            }
+        }
+    }
+
+    echo '</tbody></table>';
+    echo '</div></div>';
+}
+
+
+
+    /**
+     * Save custom fields for Bundle product.
+     */
+public function save_bundle_product_fields($post_id)
+{
+    if (isset($_POST['bundle_components']) && is_array($_POST['bundle_components'])) {
+        $sanitized_components = [];
+        $stock_levels = [];
+
+        foreach ($_POST['bundle_components'] as $key => $component) {
+            $sanitized_components[$key] = [
+                'id'    => sanitize_text_field($key),
+                'name'  => sanitize_text_field($component['name'] ?? ''),
+                'stock' => sanitize_text_field($component['stock'] ?? ''),
+                'price' => sanitize_text_field($component['price'] ?? ''),
+                'qty'   => intval($component['qty'] ?? 1),
+            ];
+
+            // Get the component stock and calculate the bundle stock
+            $component_stock = get_post_meta($key, '_stock', true);
+            if ($component_stock !== '') {
+                $stock_levels[] = floor($component_stock / max(1, $component['qty']));
+            }
+        }
+
+        // Save bundle components data
+        update_post_meta($post_id, '_bundle_components', json_encode($sanitized_components));
+
+        // Calculate and update stock level based on the lowest stock
+        $bundle_stock = !empty($stock_levels) ? min($stock_levels) : 0;
+        update_post_meta($post_id, '_stock', $bundle_stock);
+
+        // Enable stock management for the bundle product
+        update_post_meta($post_id, '_manage_stock', 'yes');
+    } else {
+        delete_post_meta($post_id, '_bundle_components');
+        delete_post_meta($post_id, '_stock');
+    }
+}
+
+
+
+    
+    public function calculate_bundle_stock($product_id)
+    {
+        $components = get_post_meta($product_id, '_bundle_components', true);
+        if (!$components) {
+            return 0;
+        }
+
+        $stock_levels = [];
+        foreach ($components as $product_id => $quantity) {
+            $stock = get_post_meta($product_id, '_stock', true);
+            if ($stock !== '') {
+                $stock_levels[] = floor($stock / $quantity);
+            }
+        }
+
+        return min($stock_levels);
+    }
+    
+ public function set_bundle_stock($stock, $product)
+{
+    if ($product->get_type() === 'bundle') {
+        $bundle_components = get_post_meta($product->get_id(), '_bundle_components', true);
+        if (is_string($bundle_components)) {
+            $bundle_components = json_decode($bundle_components, true);
+        }
+
+        $stock_levels = [];
+        if (!empty($bundle_components)) {
+            foreach ($bundle_components as $component_id => $component) {
+                $component_stock = get_post_meta($component_id, '_stock', true);
+                if ($component_stock !== '') {
+                    $stock_levels[] = floor($component_stock / max(1, $component['qty']));
+                }
+            }
+        }
+
+        $lowest_stock = !empty($stock_levels) ? min($stock_levels) : 0;
+        update_post_meta($product->get_id(), '_stock', $lowest_stock); // Ensure stock is saved
+
+        return $lowest_stock;
+    }
+
+    return $stock;
+}
+
+public function override_bundle_template($template, $template_name, $template_path)
+{
+    if ('single-product/add-to-cart/simple.php' === $template_name) {
+        global $product;
+        if ($product->get_type() === 'bundle') {
+            $template = wc_get_template_part('single-product/add-to-cart/simple');
+        }
+    }
+    return $template;
+}
+
+public function append_bundle_to_short_description($description, $product)
+{
+    if ($product->get_type() === 'bundle') {
+        $bundle_components = get_post_meta($product->get_id(), '_bundle_components', true);
+        if (is_string($bundle_components)) {
+            $bundle_components = json_decode($bundle_components, true);
+        }
+
+        if (!empty($bundle_components)) {
+            $description .= '<div class="bundle-details"><strong>Bundle includes:</strong><ul>';
+            foreach ($bundle_components as $component_id => $component) {
+                $product_component = wc_get_product($component_id);
+                if ($product_component) {
+                    $description .= '<li>' . esc_html($product_component->get_name()) . ' x ' . esc_html($component['qty']) . '</li>';
+                }
+            }
+            $description .= '</ul></div>';
+        }
+    }
+    return $description;
+}
+
+
+public function enable_bundle_add_to_cart()
+{
+    add_filter('woocommerce_is_purchasable', function ($purchasable, $product) {
+        if ($product->get_type() === 'bundle') {
+            return true;
+        }
+        return $purchasable;
+    }, 10, 2);
+
+    add_filter('woocommerce_product_single_add_to_cart_text', function ($text, $product) {
+        if ($product->get_type() === 'bundle') {
+            return __('Add Bundle to Cart', 'woocommerce');
+        }
+        return $text;
+    }, 10, 2);
+}
+
+
+
+public function reduce_bundle_stock($order_id)
+{
+    $order = wc_get_order($order_id);
+    foreach ($order->get_items() as $item) {
+        $product = $item->get_product();
+        if ($product && $product->get_type() === 'bundle') {
+            $components = json_decode(get_post_meta($product->get_id(), '_bundle_components', true), true);
+            $quantity   = $item->get_quantity();
+
+            foreach ($components as $component_id => $component_data) {
+                $current_stock = get_post_meta($component_id, '_stock', true);
+                $new_stock = max(0, $current_stock - ($component_data['qty'] * $quantity));
+                update_post_meta($component_id, '_stock', $new_stock);
+            }
+        }
+    }
+}
+public function enable_bundle_attributes($display, $product)
+{
+    if ($product->get_type() === 'bundle') {
+        return true;
+    }
+    return $display;
+}
+public function load_bundle_product_template($template)
+{
+    global $product;
+    if ($product->get_type() === 'bundle') {
+        $template = locate_template(['woocommerce/single-product.php']);
+    }
+    return $template;
+}
+public function display_bundle_components()
+{
+    global $product;
+    if ($product->get_type() === 'bundle') {
+        $bundle_components = get_post_meta($product->get_id(), '_bundle_components', true);
+        if (is_string($bundle_components)) {
+            $bundle_components = json_decode($bundle_components, true);
+        }
+
+        if (!empty($bundle_components)) {
+            echo '<div class="bundle-components-list"><strong>Included in this bundle:</strong><ul>';
+            foreach ($bundle_components as $component_id => $component) {
+                $product_component = wc_get_product($component_id);
+                if ($product_component) {
+                    echo '<li>' . esc_html($product_component->get_name()) . ' x ' . esc_html($component['qty']) . '</li>';
+                }
+            }
+            echo '</ul></div>';
+        }
+    }
+}
+
+    
+}
+
+new BundleProduct();

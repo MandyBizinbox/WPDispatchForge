@@ -1,0 +1,215 @@
+/* General Layout Styles */
+.wrap.packscan {
+    max-width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #00008B; /* Dark Blue border */
+    border-radius: 10px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+    background-color: #fff; /* White background */
+}
+
+/* Titles */
+.wrap.packscan h1 {
+    text-align: center;
+    font-size: 30px;
+    color: #00008B; /* Dark Blue */
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan h2 {
+    text-align: center;
+    font-size: 35px;
+    color: #00008B; /* Dark Blue */
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan h3 {
+    text-align: center;
+    font-size: 30px;
+    color: #000000; /* Black */
+    font-family: Verdana, sans-serif;
+}
+
+/* Order Details */
+.wrap.packscan .order-number {
+    font-size: 25px; /* H2 */
+    color: #00008B; /* Dark Blue */
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan .customer-details {
+    font-size: 20px; /* H3 */
+    color: #000000; /* Black */
+    font-family: Verdana, sans-serif;
+}
+
+/* Input Fields and Labels */
+.wrap.packscan label {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000000; /* Black */
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan input[type="text"] {
+    font-size: 20px;
+    padding: 10px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    width: 60%; /* Center and make input field moderate width */
+    margin-right: 10px; /* Space between input field and button */
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan input::placeholder {
+    color: #000000; /* Black */
+    font-size: 20px;
+    font-family: Verdana, sans-serif;
+}
+
+/* Table Styles */
+.wrap.packscan table {
+    width: 100%; /* Full width of the frame */
+    margin: 20px 0;
+    border-collapse: collapse;
+    font-family: Verdana, sans-serif;
+}
+
+.wrap.packscan table th {
+    background-color: #ADD8E6; /* Light Blue */
+    font-size: 20px;
+    font-family: Verdana, sans-serif;
+    color: #000000; /* Black */
+    border: 1px solid #000000; /* Black border */
+    padding: 10px;
+}
+
+.wrap.packscan table td {
+    background-color: #f0f0f0; /* Alternating light grey */
+    color: #000000; /* Black */
+    font-size: 16px;
+    border: 1px solid #000000; /* Black border */
+    padding: 8px;
+}
+
+.wrap.packscan table tr:nth-child(even) td {
+    background-color: #ffffff; /* Alternating white */
+}
+
+/* Button Styles */
+button.primary-action {
+    background-color: darkgreen;
+    outline: darkgreen;
+    color: black;
+    padding: 15px 30px;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px 5px;
+    font-family: Verdana, sans-serif;
+}
+
+button.secondary-action {
+    background-color: #00008B; /* Dark Blue */
+    outline: #00008B;
+    color: black;
+    padding: 15px 30px;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px 5px;
+    font-family: Verdana, sans-serif;
+}
+
+button.third-action {
+    background-color: darkred;
+    outline: darkred;
+    color: black;
+    padding: 15px 30px;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px 5px;
+    font-family: Verdana, sans-serif;
+}
+
+/* Hover Effects for Buttons */
+button.primary-action:hover,
+button.secondary-action:hover,
+button.third-action:hover {
+    opacity: 0.85; /* Slightly darker on hover */
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(255, 0, 0, 0.5); /* Light red */
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 60%;
+    font-size: 30px;
+    font-weight: bold;
+    color: #000000; /* Black */
+    text-align: center;
+}
+
+/* Screen Flash Styles */
+.flash-success {
+    animation: flashSuccess 0.7s ease-in-out;
+}
+
+.flash-error {
+    animation: flashError 0.7s ease-in-out;
+}
+
+@keyframes flashSuccess {
+    0% {
+        background-color: #ffffff; /* Start with white */
+    }
+    50% {
+        background-color: #ADFF2F; /* Light green flash */
+    }
+    100% {
+        background-color: #ffffff; /* Return to white */
+    }
+}
+
+@keyframes flashError {
+    0% {
+        background-color: #ffffff; /* Start with white */
+    }
+    50% {
+        background-color: #FF0000; /* Light red flash */
+    }
+    100% {
+        background-color: #ffffff; /* Return to white */
+    }
+}
+
+/* Utility class to ensure the flashes are applied to the full body */
+body.flash-green {
+    background-color: #ADFF2F; /* Light green background for success */
+    transition: background-color 0.7s ease;
+}
+
+body.flash-red {
+    background-color: #FF0000; /* Light red background for error */
+    transition: background-color 0.7s ease;
+}

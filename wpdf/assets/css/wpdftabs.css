@@ -1,0 +1,33 @@
+/* Tab Header Styling */
+.wpdf-tab-headers {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px;
+    border-bottom: 1px solid #ccc;
+}
+.wpdf-tab-headers li {
+    margin: 0;
+    padding: 10px 15px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    background: #f1f1f1;
+    transition: background 0.3s, font-weight 0.3s;
+}
+.wpdf-tab-headers li.active {
+    background: #fff;
+    font-weight: bold;
+    border-bottom: 1px solid #fff;
+}
+
+/* Tab Content Styling */
+.wpdf-tab-content {
+    display: none;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+}
+.wpdf-tab-content.active {
+    display: block;
+}

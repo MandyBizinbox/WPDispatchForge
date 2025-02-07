@@ -1,0 +1,23 @@
+wp-content/
+└── plugins/
+    └── wpdf/
+        ├── admin/
+        │   ├── css/
+        │   ├── js/
+        │   ├── partials/
+        │   └── templates/
+        ├── includes/
+        │   ├── api/
+        │   ├── classes/
+        │   ├── helpers/
+        │   ├── interfaces/
+        │   └── settings/
+        ├── assets/
+        │   ├── css/
+        │   ├── js/
+        │   └── images/
+        ├── languages/
+        ├── tests/
+        ├── uninstall.php
+        ├── wpdispatchforge.php
+        └── README.md

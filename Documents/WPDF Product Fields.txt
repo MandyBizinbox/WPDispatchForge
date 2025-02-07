@@ -1,0 +1,179 @@
+## WooCommerce Product Customizations for DispatchForge
+
+### **Overview**
+
+This document outlines all the customizations needed for WooCommerce products to meet the requirements of DispatchForge. These include new product fields, platform-specific configurations, and advanced features like Break-Apart and Bundle products.
+
+---
+
+### **1. Platform-Specific Product Fields**
+
+Custom fields to allow unique product configurations for each connected platform:
+
+#### **Site-Specific WooCommerce Fields**
+
+**Site-Specific Fields:**
+1. Product Name
+2. Description
+3. Short Description
+4. Regular Price
+5. Sale Price
+6. Sale Date Start
+7. Sale Date End
+8. Tax Status
+9. Tax Class
+10. Linked Products
+11. Upsells
+12. Cross-sells
+13. Grouped Products
+14. Advanced:
+    - Purchase Note
+    - Menu Order
+    - Enable Reviews
+
+**Global Fields:**
+1. SKU
+2. Weight Dimensions (Length, Width, Height)
+3. Shipping Class
+4. Stock Management
+5. Stock Quantity
+6. Allow Backorders
+7. Low Stock Threshold
+8. Attributes:
+    - Custom Product Attributes
+    - Default Attribute Values
+9. Variations (for Variable Products):
+    - Variation SKU
+    - Regular Price
+    - Sale Price
+    - Stock Status
+    - Weight & Dimensions
+    - Custom Attributes per Variation
+10. Break-Apart Fields:
+    - `_total_parents`
+    - `_total_parent_units`
+    - `_parent_units`
+    - `_total_units`
+    - `_child_units`
+    - `_child_shelf_stock`
+    - `_child_parent_stock`
+    - `_stock`
+
+#### **Site-Specific Takealot Fields**
+
+These are all store-specific fields. If multiple stores are connected, each store will require its own values:
+1. Status
+2. TSIN
+3. Offer ID
+4. Barcode
+5. Product Label Number
+6. Lead Time Days
+7. Selling Price
+8. RRP
+9. Takealot Inventory:
+    - Warehouse
+    - Stock Level
+
+---
+
+### **2. Advanced Features**
+
+#### **Break-Apart Feature**
+
+1. **Purpose**:
+   - Allows selling parts of a parent product (e.g., meters of fabric, individual packs from a box).
+
+2. **Key Fields**:
+   - `_total_parents`: Number of full parent products in stock.
+   - `_total_parent_units`: Remaining individual units from partially used parent products.
+   - `_parent_units`: Number of units in one full parent product.
+   - `_total_units`: Total number of units available across `Total Parents` and `Total Parent Units`.
+   - `_child_units`: Number of parent units required to create one child product.
+   - `_child_shelf_stock`: Pre-made child products available on shelves.
+   - `_child_parent_stock`: Possible stock of the child product derived from the parent product.
+   - `_stock`: Default WooCommerce stock field, dynamically updated to combine `Shelf Stock` and `Possible Stock`.
+
+3. **Behavior**:
+   - Selling a break-apart unit reduces the parent product stock in real-time.
+   - Automatically calculates available stock for break-apart units based on remaining parent stock.
+
+#### **Bundle Feature**
+
+1. **Purpose**:
+   - Groups multiple SKUs into a single sellable unit, with stock availability determined dynamically.
+
+2. **Key Fields**:
+   - `bundle_parent`: Links bundle products to their child SKUs.
+   - `bundle_components`: Stores child SKUs and required quantities.
+   - `bundle_stock`: Tracks calculated stock based on child SKU availability.
+
+3. **Behavior**:
+   - Bundle stock is dynamically calculated based on the lowest available stock of child SKUs.
+   - If any child SKU is out of stock, the entire bundle becomes unavailable.
+
+---
+
+### **3. UI Enhancements**
+
+#### **Dynamic Tab Generation with Site Names**
+
+1. **Dynamic Tab Generation**:
+   - Tabs will represent each connected site using the Site Name field saved in `wp_wpdf_settings`.
+   - Use site names to dynamically load fields for each platform.
+
+2. **Shared Global Fields**:
+   - Retain global fields such as `platform_sku`, `platform_price`, and `platform_description`.
+
+3. **Connected-Site Fields**:
+   - Each tab will include site-specific fields such as:
+     - Product Name
+     - Description
+     - Short Description
+     - Regular Price
+     - Sale Price
+     - Tax Class
+
+4. **Takealot-Specific Tabs:**
+   - Include fields like:
+     - TSIN
+     - Offer ID
+     - Barcode
+     - Selling Price
+     - Stock Level
+
+5. **Tooltips and Field Guidance**:
+   - Add tooltips for each field to provide descriptions and examples.
+
+#### **Order Management**
+
+1. Display custom fields such as origin order number and platform-specific metadata.
+2. Allow bulk updates for platform-specific statuses.
+3. Incorporate site-specific order fields dynamically into the order details screen.
+
+#### **Dashboard Widgets**
+
+1. Widgets for:
+   - Sync status.
+   - Low-stock alerts.
+   - Platform performance metrics.
+2. Dynamic filtering options by site and platform.
+
+---
+
+### **4. Implementation Notes**
+
+1. **Storage**:
+   - Store fields in `postmeta` using platform-specific keys (e.g., `_platform_amazon_price`).
+   - Use the Site Name field from `wp_wpdf_settings` to differentiate connected sites.
+
+2. **Dynamic Loading**:
+   - Use JavaScript to dynamically load platform-specific fields based on selected sites.
+   - Reuse MultiSync Pro's tabbed interface for seamless integration.
+
+3. **Scalability**:
+   - Ensure extensibility for future platform integrations by allowing dynamic addition of fields and tabs.
+   - Use centralized options for connected site configurations (e.g., site names).
+
+---
+
+This document outlines all necessary customizations to implement DispatchForge WooCommerce product features, combining platform-specific configurations, advanced product types, and robust UI enhancements. The schema also adapts to use Site Name fields for dynamic tab generation and clearly separates site-specific fields for WooCommerce and Takealot platforms.
